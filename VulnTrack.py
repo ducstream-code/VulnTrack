@@ -19,10 +19,16 @@ def check_args():
 
 
 def argStart(args):
+    a,b = "ab"
+    print(a)
+    print(b)
     print("args")
 
 
 def menuStart():
+    a, b = ""
+    print(a)
+    print(b)
     print("menu")
 
 
