@@ -1,7 +1,7 @@
 import os
 import sys
 import argparse
-from bs4 import BeautifulSoup
+
 
 
 def check_args():
