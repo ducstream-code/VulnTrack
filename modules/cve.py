@@ -33,15 +33,18 @@ class CVE:
 
 def color_cve(score):
     if 0.1 <= float(score) <= 3.9:
-        score = Fore.GREEN + " " + score + " " + Fore.RESET
+        score = Fore.GREEN + " " + score + "  " + Fore.RESET
         return score
     elif 4 <= float(score) <= 6.9:
-        score = Fore.LIGHTYELLOW_EX + " " + score + " " + Fore.RESET
+        score = Fore.LIGHTYELLOW_EX + " " + score + "  " + Fore.RESET
         return score
     elif 7 <= float(score) <= 8.9:
-        score = Fore.YELLOW + " " + score + " " + Fore.RESET
+        score = Fore.YELLOW + " " + score + "  " + Fore.RESET
         return score
-    elif 9 <= float(score):
+    elif 9 <= float(score) <= 9.9:
+        score = Fore.RED + " " + score + "  " + Fore.RESET
+        return score
+    elif 9.9 < float(score) <= 10:
         score = Fore.RED + " " + score + " " + Fore.RESET
         return score
     else:
