@@ -2,7 +2,7 @@ from colorama import Fore
 
 
 class CVE:
-    def __init__(self, score, ID, vuln_type, complexity, pub_date,access,link):
+    def __init__(self, score, ID, vuln_type, complexity, pub_date,access,link,version=""):
         self.score = score
         self.ID = ID
         self.vuln_type = vuln_type
@@ -10,6 +10,7 @@ class CVE:
         self.pub_date = pub_date
         self.access = access
         self.link = link
+        self.version = version
 
     def get_score(self):
         print(self.score)

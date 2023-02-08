@@ -13,7 +13,7 @@ def check_args():
     parser.add_argument("--mincvss", "-L", help="Set the low limit for cvss", type=str),
     parser.add_argument("--maxcvss", "-H", help="Set the high limit for cvss", type=str),
     group.add_argument("--cve", "-c", help="Search for a know cve", type=str)
-    group.add_argument("--year", "-y", help="Search for a know cve", type=str)
+    parser.add_argument("--year", "-y", help="Search for a know cve", type=str)
     args = parser.parse_args()
 
     if args.techno or args.os or args.cve:
@@ -29,12 +29,14 @@ def argStart(args):
         try:
             scrapping.scrape_cve(techSearch)
         except Exception as e:
+            print(e)
             print('Nothing found')
         pass
     elif args.cve:
         try:
             scrapping.search_cve(args.cve)
         except Exception as e:
+            print(e)
             print('Nothing found')
 
 
