@@ -46,7 +46,6 @@ def searchOs(search,year="",minCvss="",maxCvss=""):
             vendor = getInfo[4].split('-')[1]
             product = getInfo[5].split('-')[1]
             url = f"https://www.cvedetails.com/vulnerability-list.php?vendor_id={vendor}&product_id={product}&version_id=&page=1&hasexp=0&opdos=0&opec=0&opov=0&opcsrf=0&opgpriv=0&opsqli=0&opxss=0&opdirt=0&opmemc=0&ophttprs=0&opbyp=0&opfileinc=0&opginf=0&cvssscoremin={minCvss}&cvssscoremax={maxCvss}&year={year}&month=0&cweid=0&order=1&trc=7815&sha=aa65d4fbefc3f7d4b9b60af598c1cfc3ddcac06f"
-            print(url)
             r = requests.get(url)
             soup = bs4.BeautifulSoup(r.text,'html.parser')
             try:
@@ -72,6 +71,7 @@ def searchOs(search,year="",minCvss="",maxCvss=""):
 
 
 def format_results(results):
+    # outFile = str(time.time()) + ".csv"
 
     # récupérer la taille max du type de vul
     global vulnSize
@@ -95,7 +95,9 @@ def format_results(results):
             "║ " + result[0].ljust(17, ' ') + "║" + cve.color_cve(result[1]) + "║" + cve.padding_complexity(result[3]) + "║" + cve.vuln_type_padding(vulnSize, result[2]) + "║" + cve.access_padding(result[5]) + "║" + cve.vuln_type_padding(12, result[4]) + "║" + cve.vuln_type_padding(55, result[6]) + "║")
         print(
             "╠" + "═" * 18 + "╬" + "═" * 6 + "╬" + "═" * 8 + "╬" + "═" * vulnSize + "╬" + "═" * 9 + "╬" + "═" * 12 + "╬" + "═" * 55 + "╣")
-
+        # obj = cve.CVE(result[1], result[0], result[3], result[4], result[5], result[6], result[7])
+        # export.csv(outFile, obj)
+    # print('exported to ' + "../outputs/" + outFile)
 
 
 def getOsId(os):
