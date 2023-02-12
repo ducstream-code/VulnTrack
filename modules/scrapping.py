@@ -11,16 +11,99 @@ def exploit_query(search):
     return search
 
 
-def searchOs(search):
-    query = "https://vuldb.com/?search.advanced"
-    # get csrf
-    r = requests.get("https://vuldb.com/?search.advanced")
-    csrfSoup = bs4.BeautifulSoup(r.text,'html.parser')
-    csrfToken = csrfSoup.find_all("input",{'name':"csrftoken"})[0].get("value")
-    # data = f"vendor={search}&product=&version=&type=Operating+System&component=&file=&function=&argument=&advisory=&researcher=&researcher_company=&exploit_developer=&exploit_language=&nessus=&pvs=&openvas=&qualys=&saint=&atk=&msf=&snort=&suricata=&tippingpoint=&proventia=&mcafeeips=&paloaltoips=&fortigate=&cve=&oval=&iavm=&bugtraq=&xforce=&secunia=&osvdb=&vulcenter=&certvu=&exploitdb=&vupen=&csrftoken={urllib.parse.quote(csrfToken)}"
-    # r = requests.post(query,data)
-    print(urllib.parse.quote(csrfToken))
+def searchOs(search,year="",minCvss="",maxCvss=""):
+    search = search.lower()
+    # get every OS in the top 50
+    r = requests.get("https://www.cvedetails.com/top-50-products.php")
+    soup = bs4.BeautifulSoup(r.text, 'html.parser')
+    container = soup.find_all("table", {'class': 'listtable'})[0]
+    lines = container.find_all("tr")
+    # récupérer le contenu de chaque line dans un json
+    count = 0  # 1 pour ignorer la premiere ligne du tableau
+    linesArray = []
+    for line in lines:
+        array = []
+        if count == 0:
+            count += 1
+            continue
+        td = line.find_all('td')
+        id = td[0].text.strip()
+        name = td[1].text.strip().lower()
+        url = "https://www.cvedetails.com"+line.find_all("a")[0]['href']
+        array = [id,name,url]
+        linesArray.append(array)
+    # mtn on se débrouille pour faire la recherche
+    results = []  # on initialise un tableau vide ou stockera les résultats
+    print("Searching...")
+    for os in linesArray:
+        titleArray = os[1].split(' ')  # on coupe les valeurs dans le titre pour comparer la recherche avec
+        if search in titleArray:
+            r = requests.get(os[2])
+            soup = bs4.BeautifulSoup(r.text,'html.parser') # on scrap pour afficher toutes les vulns du produit
+            container = soup.find_all("div", {"class":"proddetailsmenu"})[0]
+            url = "https://www.cvedetails.com"+container.find_all("a")[0]['href']  # +"&year="+year+"&cvssscoremin="+minCvss+"&cvssscoremax="+maxCvss
+            getInfo = url.split("/")
+            vendor = getInfo[4].split('-')[1]
+            product = getInfo[5].split('-')[1]
+            url = f"https://www.cvedetails.com/vulnerability-list.php?vendor_id={vendor}&product_id={product}&version_id=&page=1&hasexp=0&opdos=0&opec=0&opov=0&opcsrf=0&opgpriv=0&opsqli=0&opxss=0&opdirt=0&opmemc=0&ophttprs=0&opbyp=0&opfileinc=0&opginf=0&cvssscoremin={minCvss}&cvssscoremax={maxCvss}&year={year}&month=0&cweid=0&order=1&trc=7815&sha=aa65d4fbefc3f7d4b9b60af598c1cfc3ddcac06f"
+            print(url)
+            r = requests.get(url)
+            soup = bs4.BeautifulSoup(r.text,'html.parser')
+            try:
+                error = soup.find_all("div", {"class": "errormsg"})
+                if error:
+                    print("No result for this search")
+                    return 0
+            except Exception as e:
+                pass
+            container = soup.find_all("table")[0]
+            for line in container.find_all('tr', {'class': "srrowns"}):
+                title = line.find_all('a', href=True, )[0].text
+                score = line.find_all('div', {'class': "cvssbox"})[0].text
+                vuln_type = line.find_all('td')[4].text.strip()
+                complexity = line.find_all('td')[10].text.strip()
+                pub_date = line.find_all('td')[5].text.strip()
+                access = line.find_all('td')[9].text.strip()
+                link = "https://www.cvedetails.com" + line.find_all('a', href=True, )[0]['href']
+                array = [title,score,vuln_type,complexity,pub_date,access,link,]
+                results.append(array)
 
+    return results
+
+
+def format_results(results):
+
+    # récupérer la taille max du type de vul
+    global vulnSize
+    max_length = 0
+    for result in results:
+        curLenght = len(result[2])
+        if curLenght > max_length:
+            max_length = curLenght
+        vulnSize = int(max_length + 2)
+
+    print(
+        "╔══════════════════╦══════╦════════╦" + "═" * vulnSize + "╦" + "═" * 9 + "╦" + "═" * 12 + "╦" + "═" * 55 + "╗")
+    print("║     CVE-ID       ║Score ║complex.║" + cve.vuln_type_padding(vulnSize,
+                                                                         "Vuln. Type") + "║ Access  ║ Pub Date   ║" + cve.vuln_type_padding(
+        55, 'Vuln Link') + "║")
+    print(
+        "╠" + "═" * 18 + "╬" + "═" * 6 + "╬" + "═" * 8 + "╬" + "═" * vulnSize + "╬" + "═" * 9 + "╬" + "═" * 12 + "╬" + "═" * 55 + "║")
+
+    for result in results:
+        print(
+            "║ " + result[0].ljust(17, ' ') + "║" + cve.color_cve(result[1]) + "║" + cve.padding_complexity(result[3]) + "║" + cve.vuln_type_padding(vulnSize, result[2]) + "║" + cve.access_padding(result[5]) + "║" + cve.vuln_type_padding(12, result[4]) + "║" + cve.vuln_type_padding(55, result[6]) + "║")
+        print(
+            "╠" + "═" * 18 + "╬" + "═" * 6 + "╬" + "═" * 8 + "╬" + "═" * vulnSize + "╬" + "═" * 9 + "╬" + "═" * 12 + "╬" + "═" * 55 + "╣")
+
+
+
+def getOsId(os):
+    osPage = "https://www.cvedetails.com/top-50-products.php"
+    r = requests.get(osPage)
+    soup = bs4.BeautifulSoup(r.text, "html.parser")
+    container = soup.find_all("table", {'class': 'listable'})[0]
+    print(container)
 
 
 # https://nvd.nist.gov/vuln/search/results?form_type=Basic&results_type=overview&query=PHP&queryType=phrase&search_type=all&isCpeNameSearch=false
@@ -59,7 +142,7 @@ def scrape_cve(searchType):
 
     soup = bs4.BeautifulSoup(r.text, 'html.parser')
     try:
-        error = soup.find_all("div",{"class":"errormsg"})
+        error = soup.find_all("div", {"class": "errormsg"})
         if error:
             print("No result for this search")
             return 0
@@ -90,7 +173,6 @@ def scrape_cve(searchType):
     for line in container.find_all('tr', {'class': "srrowns"}):
         # initialize datas
         title = line.find_all('a', href=True, )[0].text
-
         score = line.find_all('div', {'class': "cvssbox"})[0].text
         vuln_type = line.find_all('td')[4].text.strip()
         complexity = line.find_all('td')[10].text.strip()
@@ -158,11 +240,10 @@ def nvd_last_3_month():
     pass
 
 
-
 if __name__ == '__main__':
     # scrape_cve(10210, 0, 10, 2022, '', 0, 0, 1)
     # getTechnoID("python")
-    #search_cve("CVE-2007-1461")
-    #exploit_query("php 7.4")
-   # searchExploit("bluekeep")
-    searchOs("debian")
+    # search_cve("CVE-2007-1461")
+    # exploit_query("php 7.4")
+    # searchExploit("bluekeep")
+    format_results(searchOs("debian"))

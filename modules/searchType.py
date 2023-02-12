@@ -9,3 +9,10 @@ class SearchTech:
         self.maxCvss = maxCvss
         self.version = version
         self.technoId = techID
+
+class SearchOs:
+    def __init__(self, os, year='', minCvss=0, maxCvss=10):
+        self.os = os
+        self.year = year
+        self.minCvss = minCvss
+        self.maxCvss = maxCvss

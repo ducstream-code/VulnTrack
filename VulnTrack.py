@@ -24,7 +24,7 @@ def check_args():
 
 def argStart(args):
     if args.techno:
-        techSearch = searchType.SearchTech('args.techno', scrapping.getTechnoID(args.techno), year=args.year,
+        techSearch = searchType.SearchTech(args.techno, scrapping.getTechnoID(args.techno), year=args.year,
                                            maxCvss=args.maxcvss, minCvss=args.mincvss)
         try:
             scrapping.scrape_cve(techSearch)
@@ -36,8 +36,17 @@ def argStart(args):
         try:
             scrapping.search_cve(args.cve)
         except Exception as e:
-            print(e)
+            # print(e)
             print('Nothing found')
+    elif args.os:
+        try:
+            print("Due to few sources for OS CVE, it is only possible to scrap for the 50 most common OS.\n But it can take a while if the search is not precise")
+            params = searchType.SearchOs(args.os, year=args.year, maxCvss=args.maxcvss, minCvss=args.mincvss)
+            res = scrapping.searchOs(params.os,params.year,params.minCvss,params.maxCvss)
+            scrapping.format_results(res)
+        except Exception as e:
+            # print(e)
+            print("nothing found")
 
 
 def menuStart():

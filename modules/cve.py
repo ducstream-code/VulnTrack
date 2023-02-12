@@ -32,6 +32,18 @@ class CVE:
         print(self.pub_date)
         return self.pub_date
 
+class OS:
+    class CVE:
+        def __init__(self,os, score, ID, vuln_type, complexity, pub_date, access, link, version=""):
+            self.score = score
+            self.ID = ID
+            self.vuln_type = vuln_type
+            self.complexity = complexity
+            self.pub_date = pub_date
+            self.access = access
+            self.link = link
+            self.version = version
+
 
 def color_cve(score):
     if 0.1 <= float(score) <= 3.9:
